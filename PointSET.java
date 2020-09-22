@@ -37,11 +37,9 @@ public class PointSET {
 
   // draw all points to standard draw
   public void draw() {
-    for (Point2D point : set) {
-      double x = point.x();
-      double y = point.y();
-      StdDraw.point(x, y);
-      // StdDraw.text(x, y + .001, point.toString());
+    for (Point2D p : set) {
+      StdDraw.point(p.x(), p.y());
+      // StdDraw.text(p.x(), p.y() + .001, p.toString());
     }
   }
 
@@ -56,7 +54,19 @@ public class PointSET {
 
   // a nearest neighbor in the set to point p; null if the set is empty
   public Point2D nearest(Point2D p) {
-    return null;
+    Double minDist = null;
+    Point2D nearest = null;
+
+    for (Point2D pCmp : set) {
+      if (pCmp.equals(p)) return pCmp;
+
+      double dist = pCmp.distanceTo(p);
+      if (minDist == null || dist < minDist) {
+        minDist = dist;
+        nearest = pCmp;
+      }
+    }
+    return nearest;
   }
 
   // unit testing of the methods (optional)
@@ -103,5 +113,11 @@ public class PointSET {
     StdOut.println("Range in rect:");
     for (Point2D point : brute.range(rect))
       StdOut.println(point.toString());
+
+    // test nearest
+    StdOut.println();
+    Point2D test = new Point2D(0.77, 0.5);
+    test.draw();
+    StdOut.println("nearest:\t" + brute.nearest(test));
   }
 }
