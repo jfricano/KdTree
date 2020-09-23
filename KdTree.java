@@ -136,21 +136,21 @@ public class KdTree {
     if (cmpHi > 0) getPoints(nd.rt, q, lo, hi);
   }
 
+  // ----------------------- nodes -----------------------
   private Iterable<Node> levelOrder() {
     ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
     ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
     q.enqueue(root);
     while (!q.isEmpty()) {
-        Node nd = q.dequeue();
-        if (nd == null) continue;
-        points.enqueue(nd);
-        q.enqueue(nd.lb);
-        q.enqueue(nd.rt);
+      Node nd = q.dequeue();
+      if (nd == null) continue;
+      points.enqueue(nd);
+      q.enqueue(nd.lb);
+      q.enqueue(nd.rt);
     }
     return points;
   }
 
-  // ----------------------- nodes -----------------------
   private Iterable<Node> getAllNodes() {
     ResizingArrayBag<Node> bag = new ResizingArrayBag<>();
     getAllNodes(root, bag);
