@@ -107,16 +107,17 @@ public class KdTree {
 
   // **************************** DRAW ****************************
   public void draw() {
-    TreeSet<Double> xLimits = new TreeSet<Double>();
-    TreeSet<Double> yLimits = new TreeSet<Double>();
+    SET<Double> xLimits = new SET<Double>();
+    SET<Double> yLimits = new SET<Double>();
 
     StdDraw.setCanvasSize(800, 800);
     StdDraw.setScale(0, 1);
     draw(root, xLimits, yLimits);
   }
 
-  private void draw(Node nd, TreeSet<Double> xLimits, TreeSet<Double> yLimits) {
-    if (nd == null) return;
+  private void draw(Node nd, SET<Double> xLimits, SET<Double> yLimits) {
+    if (nd == null)
+      return;
     double x = nd.point.x();
     double y = nd.point.y();
     double[] stopLimits;
@@ -145,26 +146,28 @@ public class KdTree {
     rmLimits(nd, nd.rt, xLimits, yLimits);
   }
 
-  private void rmLimits(Node nd, Node child, TreeSet<Double> xLimits, TreeSet<Double> yLimits) {
+  private void rmLimits(Node nd, Node child, SET<Double> xLimits, SET<Double> yLimits) {
     if (nd.splitOrientation == VERTICAL && child != null)
       xLimits.remove(child.point.x());
     else if (child != null)
       yLimits.remove(child.point.y());
   }
 
-  private double[] getLimits(TreeSet<Double> limits, double coord) {
+  private double[] getLimits(SET<Double> limits, double coord) {
     double[] minMax = new double[2];
     minMax[0] = 0;
     minMax[1] = 1;
     for (double lim : limits) {
-      if (lim > minMax[0] && lim < coord) minMax[0] = lim;
-      if (lim < minMax[1] && lim > coord) minMax[1] = lim;
+      if (lim > minMax[0] && lim < coord)
+        minMax[0] = lim;
+      if (lim < minMax[1] && lim > coord)
+        minMax[1] = lim;
     }
     return minMax;
   }
-  // **************************** GETTERS ****************************
 
-  // ----------------------- points -----------------------
+  // **************************** GETTERS ****************************
+  // ---------------------------- points -----------------------------
   private Iterable<Point2D> getAllPoints() {
     ResizingArrayBag<Point2D> bag = new ResizingArrayBag<>();
     getAllPoints(root, bag);
@@ -209,7 +212,7 @@ public class KdTree {
       getPoints(nd.rt, q, lo, hi);
   }
 
-  // ----------------------- nodes -----------------------
+  // ---------------------------- nodes ----------------------------
   private Iterable<Node> levelOrder() {
     ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
     ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
@@ -266,15 +269,70 @@ public class KdTree {
       return max(nd.rt);
   }
 
-  // **************************** RANGE AND NEAREST ****************************
+  // **************************** RANGE ****************************
   // all points that are inside the rectangle (or on the boundary)
   public Iterable<Point2D> range(RectHV rect) {
     return null;
   }
 
+  // **************************** NEAREST ****************************
   // a nearest neighbor in the set to point p; null if the set is empty
   public Point2D nearest(Point2D p) {
-    return null;
+    return nearest(p, root, root.point, p.distanceTo(root.point), null);
+  }
+
+  private Point2D nearest(Point2D queryPoint, Node nd, Point2D currentNearest, double currentMin, Node parent) {
+    if (nd == null)                  return currentNearest;
+    if (queryPoint.equals(nd.point)) return nd.point;
+
+    Point2D closestOnLine;
+    Point2D nearest = currentNearest;
+    double min = currentMin;
+    double queryDist = queryPoint.distanceTo(nd.point);
+    double limitingCoord;
+
+    if (queryDist < currentMin) {
+      nearest = nd.point;
+      min = queryDist;
+    }
+
+    if (comparePoints(queryPoint, nd) < 0) {
+      nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
+
+      if (nd.splitOrientation == VERTICAL) {
+        // use the point on the vertical line drawn through the node
+        // using the same y coordinate as that line
+        // and the same x coordinate as the query point    
+        limitingCoord = parent == null ? queryPoint.x() : Math.max(queryPoint.x(), parent.point.x());
+        closestOnLine = new Point2D(limitingCoord, nd.point.x());
+        if (queryPoint.distanceTo(closestOnLine) < min)
+        nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
+      } else {
+        // use the point on the vertical line drawn through the node
+        // using the same x coordinate as that line
+        // and the same y coordinate as the query point
+        limitingCoord = parent == null ? queryPoint.y() : Math.max(queryPoint.y(), parent.point.y());
+        closestOnLine = new Point2D(nd.point.x(), limitingCoord);
+        if (queryPoint.distanceTo(closestOnLine) < min) 
+        nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
+      }
+    } else {
+      nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
+      
+      if (nd.splitOrientation == VERTICAL) {
+        limitingCoord = parent == null ? queryPoint.x() : Math.min(queryPoint.x(), parent.point.x());
+        closestOnLine = new Point2D(limitingCoord, nd.point.y());
+        if (queryPoint.distanceTo(closestOnLine) < min)
+        nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
+      } else {
+        limitingCoord = parent == null ? queryPoint.y() : Math.min(queryPoint.y(), parent.point.y());
+        closestOnLine = new Point2D(nd.point.x(), limitingCoord);
+        if (queryPoint.distanceTo(closestOnLine) < min) 
+          nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
+      }
+    }
+  
+    return nearest;
   }
 
   // **************************** MAIN ****************************
@@ -327,34 +385,15 @@ public class KdTree {
 
     // StdOut.println();
 
-    // i = 0;
-    // for (Point2D point : kdTree.getPoints())
-    // StdOut.println(++i + ". " + point.toString());
 
-    // StdOut.println();
-    // StdOut.println("size of set:\t" + kdTree.size());
-    // StdOut.println("empty set?:\t" + kdTree.isEmpty());
-    // StdOut.println("contains (false):\t" + kdTree.contains(new Point2D(0, 3)));
-    // StdOut.println("contains (true):\t" + kdTree.contains(new Point2D(0.5, 1)));
-    // StdOut.println();
-
-    // test draw(), range()
-    // RectHV rect = new RectHV(0.25, 0.25, 0.8, 1.0);
-
-    // StdDraw.setCanvasSize(800, 800);
-    // StdDraw.setPenRadius(0.005);
-    // StdDraw.setScale(-.05, 1.05);
     kdTree.draw();
-    // rect.draw();
 
-    // StdOut.println("Range in rect:");
-    // for (Point2D point : kdTree.range(rect))
-    // StdOut.println(point.toString());
-
-    // // test nearest
-    // StdOut.println();
-    // Point2D test = new Point2D(0.77, 0.5);
-    // test.draw();
-    // StdOut.println("nearest:\t" + kdTree.nearest(test));
+    // test nearest
+    StdOut.println();
+    Point2D test = new Point2D(0.1, 0.3);
+    StdDraw.setPenRadius(0.01);
+    StdDraw.setPenColor(StdDraw.ORANGE);
+    test.draw();
+    StdOut.println("nearest:\t" + kdTree.nearest(test));
   }
 }
