@@ -281,54 +281,57 @@ public class KdTree {
     return nearest(p, root, root.point, p.distanceTo(root.point), null);
   }
 
-  private Point2D nearest(Point2D queryPoint, Node nd, Point2D currentNearest, double currentMin, Node parent) {
+  private Point2D nearest(Point2D queryPoint, 
+                          Node nd, 
+                          Point2D currentNearest, 
+                          double currentMin, 
+                          Node parent) {
     if (nd == null) return currentNearest;
     if (queryPoint.equals(nd.point)) return nd.point;
 
-    Point2D closestOnLine;
+    // Point2D closestOnLine;
     Point2D nearest = currentNearest;
     double min = currentMin;
     double queryDist = queryPoint.distanceTo(nd.point);
-    
+
     if (queryDist < currentMin) {
       nearest = nd.point;
       min = queryDist;
     }
-    
-    double limitingCoord = getLimitingCoord(queryPoint, nd, parent);
-    // if the query point is left/below the node
+
     if (comparePoints(queryPoint, nd) < 0) {
-      // check the left child
       nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
       min = queryPoint.distanceTo(nearest);
-
-      // then check the right child if there is a point that could be closer in the right child
-      // this is done by checking whether the closest point in the right child branch is less than the current min
-      if (nd.splitOrientation == VERTICAL) {
-        closestOnLine = new Point2D(limitingCoord, nd.point.y());
-        if (queryPoint.distanceTo(closestOnLine) < min)
-          nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
-      } else {
-        closestOnLine = new Point2D(nd.point.x(), limitingCoord);
-        if (queryPoint.distanceTo(closestOnLine) < min)
-          nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
-      }
-    // if the query point is right / above the node
+      nearest = searchAltBranch(queryPoint, nd.rt, nearest, min, nd, parent);
     } else {
       nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
       min = queryPoint.distanceTo(nearest);
-
-      if (nd.splitOrientation == VERTICAL) {
-        closestOnLine = new Point2D(limitingCoord, nd.point.y());
-        if (queryPoint.distanceTo(closestOnLine) < min)
-          nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
-      } else {
-        closestOnLine = new Point2D(nd.point.x(), limitingCoord);
-        if (queryPoint.distanceTo(closestOnLine) < min)
-          nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
-      }
+      nearest = searchAltBranch(queryPoint, nd.lb, nearest, min, nd, parent);
     }
 
+    return nearest;
+  }
+
+  private Point2D searchAltBranch(Point2D queryPoint, 
+                                  Node child,
+                                  Point2D currentNearest, 
+                                  double currentMin, 
+                                  Node nd, 
+                                  Node parent) {
+    Point2D closestOnLine;
+    double limitingCoord = getLimitingCoord(queryPoint, nd, parent);
+    Point2D nearest = currentNearest;
+
+    if (nd.splitOrientation == VERTICAL) {
+      closestOnLine = new Point2D(limitingCoord, nd.point.y());
+      if (queryPoint.distanceTo(closestOnLine) < currentMin)
+        nearest = nearest(queryPoint, child, nearest, currentMin, nd);
+    } else {
+      closestOnLine = new Point2D(nd.point.x(), limitingCoord);
+      if (queryPoint.distanceTo(closestOnLine) < currentMin)
+        nearest = nearest(queryPoint, child, nearest, currentMin, nd);
+    }
+    
     return nearest;
   }
 
