@@ -289,17 +289,21 @@ public class KdTree {
     Point2D nearest = currentNearest;
     double min = currentMin;
     double queryDist = queryPoint.distanceTo(nd.point);
-    double limitingCoord;
-
+    
     if (queryDist < currentMin) {
       nearest = nd.point;
       min = queryDist;
     }
-
-    limitingCoord = getLimitingCoord(queryPoint, nd, parent);
+    
+    double limitingCoord = getLimitingCoord(queryPoint, nd, parent);
+    // if the query point is left/below the node
     if (comparePoints(queryPoint, nd) < 0) {
+      // check the left child
       nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
+      min = queryPoint.distanceTo(nearest);
 
+      // then check the right child if there is a point that could be closer in the right child
+      // this is done by checking whether the closest point in the right child branch is less than the current min
       if (nd.splitOrientation == VERTICAL) {
         closestOnLine = new Point2D(limitingCoord, nd.point.y());
         if (queryPoint.distanceTo(closestOnLine) < min)
@@ -309,8 +313,10 @@ public class KdTree {
         if (queryPoint.distanceTo(closestOnLine) < min)
           nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
       }
+    // if the query point is right / above the node
     } else {
       nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
+      min = queryPoint.distanceTo(nearest);
 
       if (nd.splitOrientation == VERTICAL) {
         closestOnLine = new Point2D(limitingCoord, nd.point.y());
@@ -331,7 +337,7 @@ public class KdTree {
       if (parent == null)
         return queryPoint.x();
       else if (comparePoints(nd.point, parent) < 0)
-        return  Math.min(queryPoint.x(), parent.point.x());
+        return Math.min(queryPoint.x(), parent.point.x());
       else
         return Math.max(queryPoint.x(), parent.point.x());
     } else {
@@ -394,14 +400,14 @@ public class KdTree {
 
     // StdOut.println();
 
-    kdTree.draw();
+    // kdTree.draw();
 
     // test nearest
     StdOut.println();
     Point2D test = new Point2D(0.1, 0.3);
-    StdDraw.setPenRadius(0.01);
-    StdDraw.setPenColor(StdDraw.ORANGE);
-    test.draw();
+    // StdDraw.setPenRadius(0.01);
+    // StdDraw.setPenColor(StdDraw.ORANGE);
+    // test.draw();
     StdOut.println("nearest:\t" + kdTree.nearest(test));
   }
 }
