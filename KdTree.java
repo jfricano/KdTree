@@ -109,7 +109,7 @@ public class KdTree {
   public void draw() {
     TreeSet<Double> xLimits = new TreeSet<Double>();
     TreeSet<Double> yLimits = new TreeSet<Double>();
-    
+
     StdDraw.setCanvasSize(800, 800);
     StdDraw.setScale(0, 1);
     draw(root, xLimits, yLimits);
@@ -119,8 +119,7 @@ public class KdTree {
     if (nd == null) return;
     double x = nd.point.x();
     double y = nd.point.y();
-    double stopMin = 0;
-    double stopMax = 1;
+    double[] stopLimits;
 
     StdDraw.setPenRadius(0.01);
     StdDraw.setPenColor();
@@ -128,40 +127,41 @@ public class KdTree {
 
     StdDraw.setPenRadius();
     if (nd.splitOrientation == VERTICAL) {
-      for (double coord : xLimits) {
-        if (coord > stopMin && coord < x)
-          stopMin = coord;
-        if (coord < stopMax && coord > x)
-          stopMax = coord;
-      }
+      stopLimits = getLimits(xLimits, x);
       StdDraw.setPenColor(StdDraw.BLUE);
-      StdDraw.line(stopMin, y, stopMax, y);
+      StdDraw.line(stopLimits[0], y, stopLimits[1], y);
       yLimits.add(y);
     } else {
-      for (double coord : yLimits) {
-        if (coord > stopMin && coord < y)
-          stopMin = coord;
-        if (coord < stopMax && coord > y)
-          stopMax = coord;
-      }
+      stopLimits = getLimits(yLimits, y);
       StdDraw.setPenColor(StdDraw.RED);
-      StdDraw.line(x, stopMin, x, stopMax);
+      StdDraw.line(x, stopLimits[0], x, stopLimits[1]);
       xLimits.add(x);
     }
 
     draw(nd.lb, xLimits, yLimits);
-    if (nd.splitOrientation == VERTICAL && nd.lb != null)
-      xLimits.remove(nd.lb.point.x());
-    else if (nd.lb != null)
-      yLimits.remove(nd.lb.point.y());
+    rmLimits(nd, nd.lb, xLimits, yLimits);
 
     draw(nd.rt, xLimits, yLimits);
-    if (nd.splitOrientation == VERTICAL && nd.rt != null)
-      xLimits.remove(nd.rt.point.x());
-    else if (nd.rt != null)
-      yLimits.remove(nd.rt.point.y());
+    rmLimits(nd, nd.rt, xLimits, yLimits);
   }
 
+  private void rmLimits(Node nd, Node child, TreeSet<Double> xLimits, TreeSet<Double> yLimits) {
+    if (nd.splitOrientation == VERTICAL && child != null)
+      xLimits.remove(child.point.x());
+    else if (child != null)
+      yLimits.remove(child.point.y());
+  }
+
+  private double[] getLimits(TreeSet<Double> limits, double coord) {
+    double[] minMax = new double[2];
+    minMax[0] = 0;
+    minMax[1] = 1;
+    for (double lim : limits) {
+      if (lim > minMax[0] && lim < coord) minMax[0] = lim;
+      if (lim < minMax[1] && lim > coord) minMax[1] = lim;
+    }
+    return minMax;
+  }
   // **************************** GETTERS ****************************
 
   // ----------------------- points -----------------------
