@@ -2,7 +2,7 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.ResizingArrayBag;
-import edu.princeton.cs.algs4.ResizingArrayStack;
+// import edu.princeton.cs.algs4.ResizingArrayStack;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
@@ -93,79 +93,40 @@ public class KdTree {
 
   // **************************** DRAW ****************************
   public void draw() {
-    final ResizingArrayStack<Double> xLimits = new ResizingArrayStack<Double>();
-    final ResizingArrayStack<Double> yLimits = new ResizingArrayStack<Double>();
+    // final ResizingArrayStack<Double> xLimits = new ResizingArrayStack<Double>();
+    // final ResizingArrayStack<Double> yLimits = new ResizingArrayStack<Double>();
 
     StdDraw.setScale(0, 1);
-    draw(root, xLimits, yLimits);
+    draw(root, new RectHV(0, 0, 1, 1));
   }
 
-  private void draw(final Node nd, final ResizingArrayStack<Double> xLimits, final ResizingArrayStack<Double> yLimits) {
-    if (nd == null)
-      return;
+  private void draw(final Node nd, final RectHV outer) {
+    if (nd == null) return;
+    
+    RectHV lbRect, rtRect;
     final double x = nd.point.x();
     final double y = nd.point.y();
-    double[] stopLimits;
 
     StdDraw.setPenRadius(0.01);
     StdDraw.setPenColor();
     StdDraw.point(x, y);
 
     StdDraw.setPenRadius();
+
     if (nd.splitOrientation == VERTICAL) {
-      stopLimits = getLimits(xLimits, x);
       StdDraw.setPenColor(StdDraw.BLUE);
-      StdDraw.line(stopLimits[0], y, stopLimits[1], y);
-      yLimits.push(y);
+      StdDraw.line(outer.xmin(), y, outer.xmax(), y);
+      lbRect = new RectHV(outer.xmin(), outer.ymin(), outer.xmax(), y);
+      rtRect = new RectHV(outer.xmin(), y, outer.xmax(), outer.ymax());
     } else {
-      stopLimits = getLimits(yLimits, y);
       StdDraw.setPenColor(StdDraw.RED);
-      StdDraw.line(x, stopLimits[0], x, stopLimits[1]);
-      xLimits.push(x);
+      StdDraw.line(x, outer.ymin(), x, outer.ymax());
+      lbRect = new RectHV(outer.xmin(), outer.ymin(), x, outer.ymax());
+      rtRect = new RectHV(x, outer.ymin(), outer.xmax(), outer.ymax());
     }
-
-    draw(nd.lb, xLimits, yLimits);
-    rmLimits(nd, nd.lb, xLimits, yLimits);
-
-    draw(nd.rt, xLimits, yLimits);
-    rmLimits(nd, nd.rt, xLimits, yLimits);
+    draw(nd.lb, lbRect);
+    draw(nd.rt, rtRect);
   }
-
-  private void rmLimits(final Node nd, final Node child, final ResizingArrayStack<Double> xLimits, final ResizingArrayStack<Double> yLimits) {
-    if (nd.splitOrientation == VERTICAL && child != null)
-      xLimits.pop();
-    else if (child != null)
-      yLimits.pop();
-  }
-
-  private double[] getLimits(final ResizingArrayStack<Double> limits, 
-                             final double coord) {
-    final double[] minMax = new double[2];
-    minMax[0] = 0;
-    minMax[1] = 1;
-    for (final double lim : limits) {
-      if (lim > minMax[0] && lim < coord) minMax[0] = lim;
-      if (lim < minMax[1] && lim > coord) minMax[1] = lim;
-    }
-    return minMax;
-  }
-
-  // ********************* GETTER (for testing) *********************
-  // private Iterable<Node> levelOrder() {
-  //   final ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
-  //   final ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
-  //   q.enqueue(root);
-  //   while (!q.isEmpty()) {
-  //     final Node nd = q.dequeue();
-  //     if (nd == null)
-  //       continue;
-  //     points.enqueue(nd);
-  //     q.enqueue(nd.lb);
-  //     q.enqueue(nd.rt);
-  //   }
-  //   return points;
-  // }
-
   // **************************** RANGE ****************************
   // all points that are inside the rectangle (or on the boundary)
   public Iterable<Point2D> range(final RectHV rect) {
@@ -336,14 +297,14 @@ public class KdTree {
     StdOut.println("nearest:\t" + kdTree.nearest(test));
 
     // test range()
-    final RectHV rect = new RectHV(0.25, 0.25, 0.6, 0.8);
+  //   final RectHV rect = new RectHV(0.25, 0.25, 0.6, 0.8);
 
-    StdDraw.setPenRadius(0.005);
-    StdDraw.setPenColor(StdDraw.ORANGE);
-    rect.draw();
+  //   StdDraw.setPenRadius(0.005);
+  //   StdDraw.setPenColor(StdDraw.ORANGE);
+  //   rect.draw();
 
-    StdOut.println("Range in rect:");
-    for (final Point2D point : kdTree.range(rect))
-      StdOut.println(point.toString());
+  //   StdOut.println("Range in rect:");
+  //   for (final Point2D point : kdTree.range(rect))
+  //     StdOut.println(point.toString());
   }
 }
