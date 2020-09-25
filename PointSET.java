@@ -63,15 +63,15 @@ public class PointSET {
     if (p == null)
       throw new IllegalArgumentException();
 
-    Double minDist = null;
+    double minDist = Double.POSITIVE_INFINITY;
     Point2D nearest = null;
 
     for (final Point2D pCmp : set) {
       if (pCmp.equals(p))
         return pCmp;
 
-      final double dist = pCmp.distanceTo(p);
-      if (minDist == null || dist < minDist) {
+      final double dist = pCmp.distanceSquaredTo(p);
+      if (minDist == Double.POSITIVE_INFINITY || dist < minDist) {
         minDist = dist;
         nearest = pCmp;
       }

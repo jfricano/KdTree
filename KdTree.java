@@ -2,7 +2,6 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.ResizingArrayBag;
-import edu.princeton.cs.algs4.ResizingArrayQueue;
 import edu.princeton.cs.algs4.ResizingArrayStack;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
@@ -59,26 +58,20 @@ public class KdTree {
   }
 
   private Node insert(final Node nd, final Point2D p, final boolean isVertical) {
-    if (nd == null)
-      return new Node(p, isVertical, 1);
-    if (p.equals(nd.point))
-      return nd;
+    if (nd == null)         return new Node(p, isVertical, 1);
+    if (p.equals(nd.point)) return nd;
     final double cmp = comparePoints(p, nd);
     // what about equals to zero??
-    if (cmp < 0)
-      nd.lb = insert(nd.lb, p, !isVertical);
-    else
-      nd.rt = insert(nd.rt, p, !isVertical);
+    if (cmp < 0) nd.lb = insert(nd.lb, p, !isVertical);
+    else         nd.rt = insert(nd.rt, p, !isVertical);
     nd.size = 1 + size(nd.lb) + size(nd.rt);
     return nd;
   }
 
   // **************************** COMPARE ****************************
   private static double comparePoints(final Point2D p, final Node cmp) {
-    if (cmp.splitOrientation == VERTICAL)
-      return p.y() - cmp.point.y();
-    else
-      return p.x() - cmp.point.x();
+    if (cmp.splitOrientation == VERTICAL) return p.y() - cmp.point.y();
+    else                                  return p.x() - cmp.point.x();
   }
 
   // **************************** CONTAINS ****************************
@@ -91,17 +84,13 @@ public class KdTree {
     if (p == null)
       throw new IllegalArgumentException("argument to contains() is null");
 
-    if (nd == null)
-      return false;
-    if (p.equals(nd.point))
-      return true;
+    if (nd == null)         return false;
+    if (p.equals(nd.point)) return true;
 
     final double cmp = comparePoints(p, nd);
     // what about equals zero??
-    if (cmp < 0)
-      return contains(nd.lb, p);
-    else
-      return contains(nd.rt, p);
+    if (cmp < 0) return contains(nd.lb, p);
+    else         return contains(nd.rt, p);
   }
 
   // **************************** DRAW ****************************
@@ -157,10 +146,8 @@ public class KdTree {
     minMax[0] = 0;
     minMax[1] = 1;
     for (final double lim : limits) {
-      if (lim > minMax[0] && lim < coord)
-        minMax[0] = lim;
-      if (lim < minMax[1] && lim > coord)
-        minMax[1] = lim;
+      if (lim > minMax[0] && lim < coord) minMax[0] = lim;
+      if (lim < minMax[1] && lim > coord) minMax[1] = lim;
     }
     return minMax;
   }
