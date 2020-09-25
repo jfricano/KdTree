@@ -1,15 +1,11 @@
-// import java.util.NoSuchElementException;
-// import java.util.TreeSet;
-
-import edu.princeton.cs.algs4.In;
+// import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.ResizingArrayBag;
-// import edu.princeton.cs.algs4.ResizingArrayBag;
 import edu.princeton.cs.algs4.ResizingArrayQueue;
 import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.StdDraw;
-import edu.princeton.cs.algs4.StdOut;
+// import edu.princeton.cs.algs4.StdOut;
 
 public class KdTree {
   private static final boolean VERTICAL = true;
@@ -161,53 +157,7 @@ public class KdTree {
     return minMax;
   }
 
-  // **************************** GETTERS ****************************
-  // ---------------------------- points -----------------------------
-  // private Iterable<Point2D> getAllPoints() {
-  //   ResizingArrayBag<Point2D> bag = new ResizingArrayBag<>();
-  //   getAllPoints(root, bag);
-  //   return bag;
-  // }
-
-  // private void getAllPoints(Node nd, ResizingArrayBag<Point2D> bag) {
-  //   if (nd == null)
-  //     return;
-  //   bag.add(nd.point);
-  //   getAllPoints(nd.lb, bag);
-  //   getAllPoints(nd.rt, bag);
-  // }
-
-  // private Iterable<Point2D> getPoints() {
-  //   if (isEmpty())
-  //     return new ResizingArrayQueue<>();
-  //   return getPoints(min(), max());
-  // }
-
-  // // make first arg function call to make this general
-  // private ResizingArrayQueue<Point2D> getPoints(Node lo, Node hi) {
-  //   if (lo == null)
-  //     throw new IllegalArgumentException("first argument to keys() is null");
-  //   if (hi == null)
-  //     throw new IllegalArgumentException("second argument to keys() is null");
-  //   ResizingArrayQueue<Point2D> q = new ResizingArrayQueue<>();
-  //   getPoints(root, q, lo, hi);
-  //   return q;
-  // }
-
-  // private void getPoints(Node nd, ResizingArrayQueue<Point2D> q, Node lo, Node hi) {
-  //   if (nd == null)
-  //     return;
-  //   double cmpLo = comparePoints(lo.point, nd);
-  //   double cmpHi = comparePoints(hi.point, nd);
-  //   if (cmpLo < 0)
-  //     getPoints(nd.lb, q, lo, hi);
-  //   if (cmpLo <= 0 && cmpHi >= 0)
-  //     q.enqueue(nd.point);
-  //   if (cmpHi > 0)
-  //     getPoints(nd.rt, q, lo, hi);
-  // }
-
-  // ---------------------------- nodes ----------------------------
+  // **************************** GETTER (for testing) ****************************
   private Iterable<Node> levelOrder() {
     ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
     ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
@@ -223,47 +173,6 @@ public class KdTree {
     return points;
   }
 
-  // private Iterable<Node> getAllNodes() {
-  //   ResizingArrayBag<Node> bag = new ResizingArrayBag<>();
-  //   getAllNodes(root, bag);
-  //   return bag;
-  // }
-
-  // private void getAllNodes(Node nd, ResizingArrayBag<Node> bag) {
-  //   if (nd == null)
-  //     return;
-  //   bag.add(nd);
-  //   getAllNodes(nd.lb, bag);
-  //   getAllNodes(nd.rt, bag);
-  // }
-
-  // **************************** MAX AND MIN ****************************
-  // private Node min() {
-  //   if (isEmpty())
-  //     throw new NoSuchElementException("calls min() with empty symbol table");
-  //   return min(root);
-  // }
-
-  // private Node min(Node nd) {
-  //   if (nd.lb == null)
-  //     return nd;
-  //   else
-  //     return min(nd.lb);
-  // }
-
-  // private Node max() {
-  //   if (isEmpty())
-  //     throw new NoSuchElementException("calls max() with empty symbol table");
-  //   return max(root);
-  // }
-
-  // private Node max(Node nd) {
-  //   if (nd.rt == null)
-  //     return nd;
-  //   else
-  //     return max(nd.rt);
-  // }
-
   // **************************** RANGE ****************************
   // all points that are inside the rectangle (or on the boundary)
   public Iterable<Point2D> range(RectHV rect) {
@@ -271,7 +180,6 @@ public class KdTree {
     // if root is left of rectangle, only have to look to left
     // when intersects spliting line, have to check both subtrees
     // check first half, if no, then search next subtree
-    // 
     ResizingArrayBag<Point2D> pointsInRange = new ResizingArrayBag<>();
     range(rect, root, pointsInRange);
     return pointsInRange;
@@ -430,7 +338,6 @@ public class KdTree {
     // // test range()
     // RectHV rect = new RectHV(0.25, 0.25, 0.3, 0.6);
     
-    // kdTree.draw();
 
     // StdDraw.setPenRadius(0.005);
     // StdDraw.setPenColor(StdDraw.ORANGE);
