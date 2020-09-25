@@ -1,13 +1,8 @@
-// import java.util.NoSuchElementException;
-// import java.util.TreeSet;
-
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.ResizingArrayBag;
-// import edu.princeton.cs.algs4.ResizingArrayBag;
-import edu.princeton.cs.algs4.ResizingArrayQueue;
-import edu.princeton.cs.algs4.SET;
+import edu.princeton.cs.algs4.ResizingArrayStack;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
@@ -19,12 +14,12 @@ public class KdTree {
   private Node root;
 
   private class Node {
-    private Point2D point; // sorted by key
-    private boolean splitOrientation; // associated data
+    private final Point2D point; // sorted by key
+    private final boolean splitOrientation; // associated data
     private Node lb, rt; // left and right subtrees
     private int size; // number of nodes in subtree
 
-    public Node(Point2D p, boolean split, int sz) {
+    public Node(final Point2D p, final boolean split, final int sz) {
       point = p;
       splitOrientation = split;
       lb = null;
@@ -50,22 +45,22 @@ public class KdTree {
     return size(root);
   }
 
-  private int size(Node nd) {
+  private int size(final Node nd) {
     return nd == null ? 0 : nd.size;
   }
 
   // **************************** INSERT ****************************
   // add the point to the set (if it is not already in the set)
-  public void insert(Point2D p) {
+  public void insert(final Point2D p) {
     if (p == null)
       throw new IllegalArgumentException("calls insert() with a null key");
     root = insert(root, p, VERTICAL);
   }
 
-  public Node insert(Node nd, Point2D p, boolean isVertical) {
+  private Node insert(final Node nd, final Point2D p, final boolean isVertical) {
     if (nd == null)         return new Node(p, isVertical, 1);
     if (p.equals(nd.point)) return nd;
-    double cmp = comparePoints(p, nd);
+    final double cmp = comparePoints(p, nd);
     // what about equals to zero??
     if (cmp < 0) nd.lb = insert(nd.lb, p, !isVertical);
     else         nd.rt = insert(nd.rt, p, !isVertical);
@@ -74,27 +69,25 @@ public class KdTree {
   }
 
   // **************************** COMPARE ****************************
-  private static double comparePoints(Point2D p, Node cmp) {
-    if (cmp.splitOrientation == VERTICAL)
-      return p.y() - cmp.point.y();
-    else
-      return p.x() - cmp.point.x();
+  private static double comparePoints(final Point2D p, final Node cmp) {
+    if (cmp.splitOrientation == VERTICAL) return p.y() - cmp.point.y();
+    else                                  return p.x() - cmp.point.x();
   }
 
   // **************************** CONTAINS ****************************
   // does the set contain point p?
-  public boolean contains(Point2D p) {
+  public boolean contains(final Point2D p) {
     return contains(root, p);
   }
 
-  private boolean contains(Node nd, Point2D p) {
+  private boolean contains(final Node nd, final Point2D p) {
     if (p == null)
       throw new IllegalArgumentException("argument to contains() is null");
 
     if (nd == null)         return false;
     if (p.equals(nd.point)) return true;
-    
-    double cmp = comparePoints(p, nd);
+
+    final double cmp = comparePoints(p, nd);
     // what about equals zero??
     if (cmp < 0) return contains(nd.lb, p);
     else         return contains(nd.rt, p);
@@ -102,19 +95,19 @@ public class KdTree {
 
   // **************************** DRAW ****************************
   public void draw() {
-    SET<Double> xLimits = new SET<Double>();
-    SET<Double> yLimits = new SET<Double>();
+    final ResizingArrayStack<Double> xLimits = new ResizingArrayStack<Double>();
+    final ResizingArrayStack<Double> yLimits = new ResizingArrayStack<Double>();
 
-    StdDraw.setCanvasSize(800, 800);
+    // StdDraw.setCanvasSize(800, 800);
     StdDraw.setScale(0, 1);
     draw(root, xLimits, yLimits);
   }
 
-  private void draw(Node nd, SET<Double> xLimits, SET<Double> yLimits) {
+  private void draw(final Node nd, final ResizingArrayStack<Double> xLimits, final ResizingArrayStack<Double> yLimits) {
     if (nd == null)
       return;
-    double x = nd.point.x();
-    double y = nd.point.y();
+    final double x = nd.point.x();
+    final double y = nd.point.y();
     double[] stopLimits;
 
     StdDraw.setPenRadius(0.01);
@@ -126,12 +119,12 @@ public class KdTree {
       stopLimits = getLimits(xLimits, x);
       StdDraw.setPenColor(StdDraw.BLUE);
       StdDraw.line(stopLimits[0], y, stopLimits[1], y);
-      yLimits.add(y);
+      yLimits.push(y);
     } else {
       stopLimits = getLimits(yLimits, y);
       StdDraw.setPenColor(StdDraw.RED);
       StdDraw.line(x, stopLimits[0], x, stopLimits[1]);
-      xLimits.add(x);
+      xLimits.push(x);
     }
 
     draw(nd.lb, xLimits, yLimits);
@@ -141,184 +134,97 @@ public class KdTree {
     rmLimits(nd, nd.rt, xLimits, yLimits);
   }
 
-  private void rmLimits(Node nd, Node child, SET<Double> xLimits, SET<Double> yLimits) {
+  private void rmLimits(final Node nd, final Node child, final ResizingArrayStack<Double> xLimits, final ResizingArrayStack<Double> yLimits) {
     if (nd.splitOrientation == VERTICAL && child != null)
-      xLimits.remove(child.point.x());
+      xLimits.pop();
     else if (child != null)
-      yLimits.remove(child.point.y());
+      yLimits.pop();
   }
 
-  private double[] getLimits(SET<Double> limits, double coord) {
-    double[] minMax = new double[2];
+  private double[] getLimits(final ResizingArrayStack<Double> limits, final double coord) {
+    final double[] minMax = new double[2];
     minMax[0] = 0;
     minMax[1] = 1;
-    for (double lim : limits) {
-      if (lim > minMax[0] && lim < coord)
-        minMax[0] = lim;
-      if (lim < minMax[1] && lim > coord)
-        minMax[1] = lim;
+    for (final double lim : limits) {
+      if (lim > minMax[0] && lim < coord) minMax[0] = lim;
+      if (lim < minMax[1] && lim > coord) minMax[1] = lim;
     }
     return minMax;
   }
 
-  // **************************** GETTERS ****************************
-  // ---------------------------- points -----------------------------
-  // private Iterable<Point2D> getAllPoints() {
-  //   ResizingArrayBag<Point2D> bag = new ResizingArrayBag<>();
-  //   getAllPoints(root, bag);
-  //   return bag;
-  // }
-
-  // private void getAllPoints(Node nd, ResizingArrayBag<Point2D> bag) {
-  //   if (nd == null)
-  //     return;
-  //   bag.add(nd.point);
-  //   getAllPoints(nd.lb, bag);
-  //   getAllPoints(nd.rt, bag);
-  // }
-
-  // private Iterable<Point2D> getPoints() {
-  //   if (isEmpty())
-  //     return new ResizingArrayQueue<>();
-  //   return getPoints(min(), max());
-  // }
-
-  // // make first arg function call to make this general
-  // private ResizingArrayQueue<Point2D> getPoints(Node lo, Node hi) {
-  //   if (lo == null)
-  //     throw new IllegalArgumentException("first argument to keys() is null");
-  //   if (hi == null)
-  //     throw new IllegalArgumentException("second argument to keys() is null");
-  //   ResizingArrayQueue<Point2D> q = new ResizingArrayQueue<>();
-  //   getPoints(root, q, lo, hi);
-  //   return q;
-  // }
-
-  // private void getPoints(Node nd, ResizingArrayQueue<Point2D> q, Node lo, Node hi) {
-  //   if (nd == null)
-  //     return;
-  //   double cmpLo = comparePoints(lo.point, nd);
-  //   double cmpHi = comparePoints(hi.point, nd);
-  //   if (cmpLo < 0)
-  //     getPoints(nd.lb, q, lo, hi);
-  //   if (cmpLo <= 0 && cmpHi >= 0)
-  //     q.enqueue(nd.point);
-  //   if (cmpHi > 0)
-  //     getPoints(nd.rt, q, lo, hi);
-  // }
-
-  // ---------------------------- nodes ----------------------------
-  private Iterable<Node> levelOrder() {
-    ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
-    ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
-    q.enqueue(root);
-    while (!q.isEmpty()) {
-      Node nd = q.dequeue();
-      if (nd == null)
-        continue;
-      points.enqueue(nd);
-      q.enqueue(nd.lb);
-      q.enqueue(nd.rt);
-    }
-    return points;
-  }
-
-  // private Iterable<Node> getAllNodes() {
-  //   ResizingArrayBag<Node> bag = new ResizingArrayBag<>();
-  //   getAllNodes(root, bag);
-  //   return bag;
-  // }
-
-  // private void getAllNodes(Node nd, ResizingArrayBag<Node> bag) {
-  //   if (nd == null)
-  //     return;
-  //   bag.add(nd);
-  //   getAllNodes(nd.lb, bag);
-  //   getAllNodes(nd.rt, bag);
-  // }
-
-  // **************************** MAX AND MIN ****************************
-  // private Node min() {
-  //   if (isEmpty())
-  //     throw new NoSuchElementException("calls min() with empty symbol table");
-  //   return min(root);
-  // }
-
-  // private Node min(Node nd) {
-  //   if (nd.lb == null)
-  //     return nd;
-  //   else
-  //     return min(nd.lb);
-  // }
-
-  // private Node max() {
-  //   if (isEmpty())
-  //     throw new NoSuchElementException("calls max() with empty symbol table");
-  //   return max(root);
-  // }
-
-  // private Node max(Node nd) {
-  //   if (nd.rt == null)
-  //     return nd;
-  //   else
-  //     return max(nd.rt);
+  // **************************** GETTER (for testing)
+  // ****************************
+  // private Iterable<Node> levelOrder() {
+  //   final ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
+  //   final ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
+  //   q.enqueue(root);
+  //   while (!q.isEmpty()) {
+  //     final Node nd = q.dequeue();
+  //     if (nd == null)
+  //       continue;
+  //     points.enqueue(nd);
+  //     q.enqueue(nd.lb);
+  //     q.enqueue(nd.rt);
+  //   }
+  //   return points;
   // }
 
   // **************************** RANGE ****************************
   // all points that are inside the rectangle (or on the boundary)
-  public Iterable<Point2D> range(RectHV rect) {
+  public Iterable<Point2D> range(final RectHV rect) {
     // if root, then can continue to look for more
     // if root is left of rectangle, only have to look to left
     // when intersects spliting line, have to check both subtrees
     // check first half, if no, then search next subtree
-    // 
-    ResizingArrayBag<Point2D> pointsInRange = new ResizingArrayBag<>();
+    final ResizingArrayBag<Point2D> pointsInRange = new ResizingArrayBag<>();
     range(rect, root, pointsInRange);
     return pointsInRange;
   }
 
-  private void range(RectHV rect, Node nd, ResizingArrayBag<Point2D> pointsInRange) {
-    if (nd == null) return;
-    double distThis = rect.distanceTo(nd.point);
-    Double distLft = nd.lb == null ? null : rect.distanceTo(nd.lb.point);
-    Double distRt  = nd.rt == null ? null : rect.distanceTo(nd.rt.point);
+  private void range(final RectHV rect, final Node nd, final ResizingArrayBag<Point2D> pointsInRange) {
+    if (nd == null)
+      return;
+    final double distThis = rect.distanceSquaredTo(nd.point);
+    final double distLft = nd.lb == null ? Double.POSITIVE_INFINITY : rect.distanceSquaredTo(nd.lb.point);
+    final double distRt = nd.rt == null ? Double.POSITIVE_INFINITY : rect.distanceSquaredTo(nd.rt.point);
 
     if (rect.contains(nd.point)) {
       // add the point
       pointsInRange.add(nd.point);
       // check left
-      if (distLft != null) range(rect, nd.lb, pointsInRange);
+      if (nd.lb != null)
+        range(rect, nd.lb, pointsInRange);
       // check right
-      if (distRt != null) range(rect, nd.rt, pointsInRange);
+      if (nd.rt != null)
+        range(rect, nd.rt, pointsInRange);
     }
 
     // MAYBE NEED TO USE LESS OR EQUALS??
     else {
-      if (distLft != null && distLft <= distThis)
+      if (distLft <= distThis)
         range(rect, nd.lb, pointsInRange);
-      if (distRt != null && distRt <= distThis)
+      if (distRt <= distThis)
         range(rect, nd.rt, pointsInRange);
     }
   }
 
   // **************************** NEAREST ****************************
   // a nearest neighbor in the set to point p; null if the set is empty
-  public Point2D nearest(Point2D p) {
-    return nearest(p, root, root.point, p.distanceTo(root.point), null);
+  public Point2D nearest(final Point2D p) {
+    return nearest(p, root, root.point, p.distanceSquaredTo(root.point), null);
   }
 
-  private Point2D nearest(Point2D queryPoint, 
-                          Node nd, 
-                          Point2D currentNearest, 
-                          double currentMin, 
-                          Node parent) {
-    if (nd == null) return currentNearest;
-    if (queryPoint.equals(nd.point)) return nd.point;
+  private Point2D nearest(final Point2D queryPoint, final Node nd, final Point2D currentNearest,
+      final double currentMin, final Node parent) {
+    if (nd == null)
+      return currentNearest;
+    if (queryPoint.equals(nd.point))
+      return nd.point;
 
     // Point2D closestOnLine;
     Point2D nearest = currentNearest;
     double min = currentMin;
-    double queryDist = queryPoint.distanceTo(nd.point);
+    final double queryDist = queryPoint.distanceSquaredTo(nd.point);
 
     if (queryDist < currentMin) {
       nearest = nd.point;
@@ -327,41 +233,37 @@ public class KdTree {
 
     if (comparePoints(queryPoint, nd) < 0) {
       nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
-      min = queryPoint.distanceTo(nearest);
+      min = queryPoint.distanceSquaredTo(nearest);
       nearest = nearest(queryPoint, nd.rt, nearest, min, nd, parent);
     } else {
       nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
-      min = queryPoint.distanceTo(nearest);
+      min = queryPoint.distanceSquaredTo(nearest);
       nearest = nearest(queryPoint, nd.lb, nearest, min, nd, parent);
     }
 
     return nearest;
   }
 
-  private Point2D nearest(Point2D queryPoint, 
-                          Node child,
-                          Point2D currentNearest, 
-                          double currentMin, 
-                          Node nd, 
-                          Node parent) {
+  private Point2D nearest(final Point2D queryPoint, final Node child, final Point2D currentNearest,
+      final double currentMin, final Node nd, final Node parent) {
     Point2D closestOnLine;
-    double limitingCoord = getLimitingCoord(queryPoint, nd, parent);
+    final double limitingCoord = getLimitingCoord(queryPoint, nd, parent);
     Point2D nearest = currentNearest;
 
     if (nd.splitOrientation == VERTICAL) {
       closestOnLine = new Point2D(limitingCoord, nd.point.y());
-      if (queryPoint.distanceTo(closestOnLine) < currentMin)
+      if (queryPoint.distanceSquaredTo(closestOnLine) < currentMin)
         nearest = nearest(queryPoint, child, nearest, currentMin, nd);
     } else {
       closestOnLine = new Point2D(nd.point.x(), limitingCoord);
-      if (queryPoint.distanceTo(closestOnLine) < currentMin)
+      if (queryPoint.distanceSquaredTo(closestOnLine) < currentMin)
         nearest = nearest(queryPoint, child, nearest, currentMin, nd);
     }
-    
+
     return nearest;
   }
 
-  private double getLimitingCoord(Point2D queryPoint, Node nd, Node parent) {
+  private double getLimitingCoord(final Point2D queryPoint, final Node nd, final Node parent) {
     if (nd.splitOrientation == VERTICAL) {
       if (parent == null)
         return queryPoint.x();
@@ -381,63 +283,68 @@ public class KdTree {
 
   // **************************** MAIN ****************************
   // unit testing of the methods (optional)
-  public static void main(String[] args) {
-    // String filename = args[0];
-    // In in = new In(filename);
-    // KdTree kdTree = new KdTree();
+  public static void main(final String[] args) {
+    String filename = args[0];
+    In in = new In(filename);
+    KdTree kdTree = new KdTree();
 
-    // // test empty set
-    // StdOut.println("size of set:\t" + kdTree.size());
-    // StdOut.println("empty set?:\t" + kdTree.isEmpty());
-    // StdOut.println();
+    // test empty set
+    StdOut.println("size of set:\t" + kdTree.size());
+    StdOut.println("empty set?:\t" + kdTree.isEmpty());
+    StdOut.println();
 
-    // // fill the set
-    // while (!in.isEmpty()) {
-    //   double x = in.readDouble();
-    //   double y = in.readDouble();
-    //   Point2D p = new Point2D(x, y);
-    //   kdTree.insert(p);
-    // }
+    // fill the set
+    while (!in.isEmpty()) {
+      double x = in.readDouble();
+      double y = in.readDouble();
+      Point2D p = new Point2D(x, y);
+      kdTree.insert(p);
+    }
 
-    // StdOut.println();
+    StdOut.println();
 
-    // // test filled set
+    // test filled set
     // StdOut.println("Points added\n---------------------");
+    // RectHV RANGE = new RectHV(0, 0, 1, 1);
     // int i = 0;
     // for (Node nd : kdTree.levelOrder()) {
     //   Node leftChild = nd.lb;
     //   Node rtChild = nd.rt;
     //   StdOut.println(++i + ". " + nd.point.toString() + "\t" + (nd.splitOrientation == VERTICAL ? "--" : "|"));
     //   StdOut.println("Children: " + (leftChild == null ? "none" : leftChild.point.toString()) + "\t"
-    //       + (rtChild == null ? "none" : rtChild.point.toString()));
+    //   + (rtChild == null ? "none" : rtChild.point.toString()));
     //   StdOut.println("Size: " + nd.size);
     //   StdOut.println();
     // }
 
-    // StdOut.println();
+    StdOut.println("Points added\n---------------------");
+    RectHV RANGE = new RectHV(0, 0, 1, 1);
+    int i = 0;
+    for (Point2D p : kdTree.range(RANGE)) StdOut.println(++i + ". " + p.toString());
 
-    // // test draw()
-    // kdTree.draw();
+    StdOut.println();
 
-    // // test nearest()
-    // StdOut.println();
-    // Point2D test = new Point2D(0.1, 0.3);
-    // StdDraw.setPenRadius(0.01);
-    // StdDraw.setPenColor(StdDraw.ORANGE);
-    // test.draw();
-    // StdOut.println("nearest:\t" + kdTree.nearest(test));
+    // test draw()
+    kdTree.draw();
 
-    // // test range()
-    // RectHV rect = new RectHV(0.25, 0.25, 0.3, 0.6);
+    // test nearest()
+    StdOut.println();
+    Point2D test = new Point2D(0.1, 0.3);
+    StdDraw.setPenRadius(0.01);
+    StdDraw.setPenColor(StdDraw.ORANGE);
+    test.draw();
+    StdOut.println("nearest:\t" + kdTree.nearest(test));
+
+    // test range()
+    RectHV rect = new RectHV(0.25, 0.25, 0.6, 0.8);
     
-    // kdTree.draw();
 
-    // StdDraw.setPenRadius(0.005);
-    // StdDraw.setPenColor(StdDraw.ORANGE);
-    // rect.draw();
+    StdDraw.setPenRadius(0.005);
+    StdDraw.setPenColor(StdDraw.ORANGE);
+    rect.draw();
 
-    // StdOut.println("Range in rect:");
-    // for (Point2D point : kdTree.range(rect))
-    //   StdOut.println(point.toString());
+    StdOut.println("Range in rect:");
+    for (Point2D point : kdTree.range(rect))
+      StdOut.println(point.toString());
   }
 }
