@@ -8,7 +8,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class KdTree {
   private static final boolean VERTICAL = true;
-  // private static final boolean HORIZONTAL = false;
+  private static final boolean HORIZONTAL = false;
   // private static final RectHV RANGE = new RectHV(0, 0, 1, 1);
 
   private Node root;
@@ -54,7 +54,7 @@ public class KdTree {
   public void insert(final Point2D p) {
     if (p == null)
       throw new IllegalArgumentException("calls insert() with a null key");
-    root = insert(root, p, VERTICAL);
+    root = insert(root, p, HORIZONTAL);
   }
 
   private Node insert(final Node nd, final Point2D p, final boolean isVertical) {
@@ -177,35 +177,39 @@ public class KdTree {
     // when intersects spliting line, have to check both subtrees
     // check first half, if no, then search next subtree
     final ResizingArrayBag<Point2D> pointsInRange = new ResizingArrayBag<>();
-    range(rect, root, pointsInRange);
+    range(rect, root, pointsInRange, 0, 0, 1, 1);
     return pointsInRange;
   }
 
-  private void range(final RectHV rect, final Node nd, final ResizingArrayBag<Point2D> pointsInRange) {
-    if (nd == null)
-      return;
-    final double distThis = rect.distanceSquaredTo(nd.point);
-    final double distLft = nd.lb == null ? Double.POSITIVE_INFINITY : rect.distanceSquaredTo(nd.lb.point);
-    final double distRt = nd.rt == null ? Double.POSITIVE_INFINITY : rect.distanceSquaredTo(nd.rt.point);
+  private void range(final RectHV rect, 
+                     final Node nd, 
+                     final ResizingArrayBag<Point2D> pointsInRange,
+                     double xMin, double yMin,
+                     double xMax, double yMax) {
+    if (nd == null) return;
+    if (rect.contains(nd.point)) pointsInRange.add(nd.point);
 
-    if (rect.contains(nd.point)) {
-      // add the point
-      pointsInRange.add(nd.point);
-      // check left
-      if (nd.lb != null)
-        range(rect, nd.lb, pointsInRange);
-      // check right
-      if (nd.rt != null)
-        range(rect, nd.rt, pointsInRange);
+    // final double distThis = rect.distanceSquaredTo(nd.point);
+    RectHV lbRect, rtRect;
+
+    // create a lb rectangle
+    // create a rt rectanble
+    if (nd.splitOrientation == VERTICAL) {
+      lbRect = new RectHV(xMin, yMin, xMax, nd.point.y());
+      rtRect = new RectHV(xMin, nd.point.y(), xMax, yMax);
+    } else {
+      lbRect = new RectHV(xMin, yMin, nd.point.x(), yMax);
+      rtRect = new RectHV(nd.point.x(), yMin, xMax, yMax);
     }
 
-    // MAYBE NEED TO USE LESS OR EQUALS??
-    else {
-      if (distLft <= distThis)
-        range(rect, nd.lb, pointsInRange);
-      if (distRt <= distThis)
-        range(rect, nd.rt, pointsInRange);
-    }
+    // if the rect intersects lb, then search lb
+    // if the rect intersects rt, then search rt
+    if (rect.intersects(lbRect)) range(rect, nd.lb, pointsInRange, 
+                                       lbRect.xmin(), lbRect.ymin(), 
+                                       lbRect.xmax(), lbRect.ymax());
+    if (rect.intersects(rtRect)) range(rect, nd.rt, pointsInRange, 
+                                       rtRect.xmin(), rtRect.ymin(), 
+                                       rtRect.xmax(), rtRect.ymax());
   }
 
   // **************************** NEAREST ****************************
@@ -265,15 +269,13 @@ public class KdTree {
 
   private double getLimitingCoord(final Point2D queryPoint, final Node nd, final Node parent) {
     if (nd.splitOrientation == VERTICAL) {
-      if (parent == null)
-        return queryPoint.x();
+      if (parent == null) return queryPoint.x();
       else if (comparePoints(nd.point, parent) < 0)
         return Math.min(queryPoint.x(), parent.point.x());
       else
         return Math.max(queryPoint.x(), parent.point.x());
     } else {
-      if (parent == null)
-        return queryPoint.y();
+      if (parent == null) return queryPoint.y();
       else if (comparePoints(nd.point, parent) < 0)
         return Math.min(queryPoint.y(), parent.point.y());
       else
