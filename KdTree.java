@@ -15,12 +15,12 @@ public class KdTree {
   private Node root;
 
   private class Node {
-    private Point2D point; // sorted by key
-    private boolean splitOrientation; // associated data
+    private final Point2D point; // sorted by key
+    private final boolean splitOrientation; // associated data
     private Node lb, rt; // left and right subtrees
     private int size; // number of nodes in subtree
 
-    public Node(Point2D p, boolean split, int sz) {
+    public Node(final Point2D p, final boolean split, final int sz) {
       point = p;
       splitOrientation = split;
       lb = null;
@@ -46,31 +46,35 @@ public class KdTree {
     return size(root);
   }
 
-  private int size(Node nd) {
+  private int size(final Node nd) {
     return nd == null ? 0 : nd.size;
   }
 
   // **************************** INSERT ****************************
   // add the point to the set (if it is not already in the set)
-  public void insert(Point2D p) {
+  public void insert(final Point2D p) {
     if (p == null)
       throw new IllegalArgumentException("calls insert() with a null key");
     root = insert(root, p, VERTICAL);
   }
 
-  private Node insert(Node nd, Point2D p, boolean isVertical) {
-    if (nd == null)         return new Node(p, isVertical, 1);
-    if (p.equals(nd.point)) return nd;
-    double cmp = comparePoints(p, nd);
+  private Node insert(final Node nd, final Point2D p, final boolean isVertical) {
+    if (nd == null)
+      return new Node(p, isVertical, 1);
+    if (p.equals(nd.point))
+      return nd;
+    final double cmp = comparePoints(p, nd);
     // what about equals to zero??
-    if (cmp < 0) nd.lb = insert(nd.lb, p, !isVertical);
-    else         nd.rt = insert(nd.rt, p, !isVertical);
+    if (cmp < 0)
+      nd.lb = insert(nd.lb, p, !isVertical);
+    else
+      nd.rt = insert(nd.rt, p, !isVertical);
     nd.size = 1 + size(nd.lb) + size(nd.rt);
     return nd;
   }
 
   // **************************** COMPARE ****************************
-  private static double comparePoints(Point2D p, Node cmp) {
+  private static double comparePoints(final Point2D p, final Node cmp) {
     if (cmp.splitOrientation == VERTICAL)
       return p.y() - cmp.point.y();
     else
@@ -79,38 +83,42 @@ public class KdTree {
 
   // **************************** CONTAINS ****************************
   // does the set contain point p?
-  public boolean contains(Point2D p) {
+  public boolean contains(final Point2D p) {
     return contains(root, p);
   }
 
-  private boolean contains(Node nd, Point2D p) {
+  private boolean contains(final Node nd, final Point2D p) {
     if (p == null)
       throw new IllegalArgumentException("argument to contains() is null");
 
-    if (nd == null)         return false;
-    if (p.equals(nd.point)) return true;
-    
-    double cmp = comparePoints(p, nd);
+    if (nd == null)
+      return false;
+    if (p.equals(nd.point))
+      return true;
+
+    final double cmp = comparePoints(p, nd);
     // what about equals zero??
-    if (cmp < 0) return contains(nd.lb, p);
-    else         return contains(nd.rt, p);
+    if (cmp < 0)
+      return contains(nd.lb, p);
+    else
+      return contains(nd.rt, p);
   }
 
   // **************************** DRAW ****************************
   public void draw() {
-    SET<Double> xLimits = new SET<Double>();
-    SET<Double> yLimits = new SET<Double>();
+    final SET<Double> xLimits = new SET<Double>();
+    final SET<Double> yLimits = new SET<Double>();
 
     StdDraw.setCanvasSize(800, 800);
     StdDraw.setScale(0, 1);
     draw(root, xLimits, yLimits);
   }
 
-  private void draw(Node nd, SET<Double> xLimits, SET<Double> yLimits) {
+  private void draw(final Node nd, final SET<Double> xLimits, final SET<Double> yLimits) {
     if (nd == null)
       return;
-    double x = nd.point.x();
-    double y = nd.point.y();
+    final double x = nd.point.x();
+    final double y = nd.point.y();
     double[] stopLimits;
 
     StdDraw.setPenRadius(0.01);
@@ -137,18 +145,18 @@ public class KdTree {
     rmLimits(nd, nd.rt, xLimits, yLimits);
   }
 
-  private void rmLimits(Node nd, Node child, SET<Double> xLimits, SET<Double> yLimits) {
+  private void rmLimits(final Node nd, final Node child, final SET<Double> xLimits, final SET<Double> yLimits) {
     if (nd.splitOrientation == VERTICAL && child != null)
       xLimits.remove(child.point.x());
     else if (child != null)
       yLimits.remove(child.point.y());
   }
 
-  private double[] getLimits(SET<Double> limits, double coord) {
-    double[] minMax = new double[2];
+  private double[] getLimits(final SET<Double> limits, final double coord) {
+    final double[] minMax = new double[2];
     minMax[0] = 0;
     minMax[1] = 1;
-    for (double lim : limits) {
+    for (final double lim : limits) {
       if (lim > minMax[0] && lim < coord)
         minMax[0] = lim;
       if (lim < minMax[1] && lim > coord)
@@ -157,13 +165,14 @@ public class KdTree {
     return minMax;
   }
 
-  // **************************** GETTER (for testing) ****************************
+  // **************************** GETTER (for testing)
+  // ****************************
   private Iterable<Node> levelOrder() {
-    ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
-    ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
+    final ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
+    final ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
     q.enqueue(root);
     while (!q.isEmpty()) {
-      Node nd = q.dequeue();
+      final Node nd = q.dequeue();
       if (nd == null)
         continue;
       points.enqueue(nd);
@@ -175,29 +184,32 @@ public class KdTree {
 
   // **************************** RANGE ****************************
   // all points that are inside the rectangle (or on the boundary)
-  public Iterable<Point2D> range(RectHV rect) {
+  public Iterable<Point2D> range(final RectHV rect) {
     // if root, then can continue to look for more
     // if root is left of rectangle, only have to look to left
     // when intersects spliting line, have to check both subtrees
     // check first half, if no, then search next subtree
-    ResizingArrayBag<Point2D> pointsInRange = new ResizingArrayBag<>();
+    final ResizingArrayBag<Point2D> pointsInRange = new ResizingArrayBag<>();
     range(rect, root, pointsInRange);
     return pointsInRange;
   }
 
-  private void range(RectHV rect, Node nd, ResizingArrayBag<Point2D> pointsInRange) {
-    if (nd == null) return;
-    double distThis = rect.distanceTo(nd.point);
-    Double distLft = nd.lb == null ? null : rect.distanceTo(nd.lb.point);
-    Double distRt  = nd.rt == null ? null : rect.distanceTo(nd.rt.point);
+  private void range(final RectHV rect, final Node nd, final ResizingArrayBag<Point2D> pointsInRange) {
+    if (nd == null)
+      return;
+    final double distThis = rect.distanceTo(nd.point);
+    final Double distLft = nd.lb == null ? null : rect.distanceTo(nd.lb.point);
+    final Double distRt = nd.rt == null ? null : rect.distanceTo(nd.rt.point);
 
     if (rect.contains(nd.point)) {
       // add the point
       pointsInRange.add(nd.point);
       // check left
-      if (distLft != null) range(rect, nd.lb, pointsInRange);
+      if (distLft != null)
+        range(rect, nd.lb, pointsInRange);
       // check right
-      if (distRt != null) range(rect, nd.rt, pointsInRange);
+      if (distRt != null)
+        range(rect, nd.rt, pointsInRange);
     }
 
     // MAYBE NEED TO USE LESS OR EQUALS??
@@ -211,22 +223,21 @@ public class KdTree {
 
   // **************************** NEAREST ****************************
   // a nearest neighbor in the set to point p; null if the set is empty
-  public Point2D nearest(Point2D p) {
+  public Point2D nearest(final Point2D p) {
     return nearest(p, root, root.point, p.distanceTo(root.point), null);
   }
 
-  private Point2D nearest(Point2D queryPoint, 
-                          Node nd, 
-                          Point2D currentNearest, 
-                          double currentMin, 
-                          Node parent) {
-    if (nd == null) return currentNearest;
-    if (queryPoint.equals(nd.point)) return nd.point;
+  private Point2D nearest(final Point2D queryPoint, final Node nd, final Point2D currentNearest,
+      final double currentMin, final Node parent) {
+    if (nd == null)
+      return currentNearest;
+    if (queryPoint.equals(nd.point))
+      return nd.point;
 
     // Point2D closestOnLine;
     Point2D nearest = currentNearest;
     double min = currentMin;
-    double queryDist = queryPoint.distanceTo(nd.point);
+    final double queryDist = queryPoint.distanceTo(nd.point);
 
     if (queryDist < currentMin) {
       nearest = nd.point;
@@ -246,14 +257,10 @@ public class KdTree {
     return nearest;
   }
 
-  private Point2D nearest(Point2D queryPoint, 
-                          Node child,
-                          Point2D currentNearest, 
-                          double currentMin, 
-                          Node nd, 
-                          Node parent) {
+  private Point2D nearest(final Point2D queryPoint, final Node child, final Point2D currentNearest,
+      final double currentMin, final Node nd, final Node parent) {
     Point2D closestOnLine;
-    double limitingCoord = getLimitingCoord(queryPoint, nd, parent);
+    final double limitingCoord = getLimitingCoord(queryPoint, nd, parent);
     Point2D nearest = currentNearest;
 
     if (nd.splitOrientation == VERTICAL) {
@@ -265,11 +272,11 @@ public class KdTree {
       if (queryPoint.distanceTo(closestOnLine) < currentMin)
         nearest = nearest(queryPoint, child, nearest, currentMin, nd);
     }
-    
+
     return nearest;
   }
 
-  private double getLimitingCoord(Point2D queryPoint, Node nd, Node parent) {
+  private double getLimitingCoord(final Point2D queryPoint, final Node nd, final Node parent) {
     if (nd.splitOrientation == VERTICAL) {
       if (parent == null)
         return queryPoint.x();
@@ -289,7 +296,7 @@ public class KdTree {
 
   // **************************** MAIN ****************************
   // unit testing of the methods (optional)
-  public static void main(String[] args) {
+  public static void main(final String[] args) {
     // String filename = args[0];
     // In in = new In(filename);
     // KdTree kdTree = new KdTree();
