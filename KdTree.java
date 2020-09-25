@@ -58,7 +58,7 @@ public class KdTree {
     root = insert(root, p, VERTICAL);
   }
 
-  public Node insert(Node nd, Point2D p, boolean isVertical) {
+  private Node insert(Node nd, Point2D p, boolean isVertical) {
     if (nd == null)         return new Node(p, isVertical, 1);
     if (p.equals(nd.point)) return nd;
     double cmp = comparePoints(p, nd);
