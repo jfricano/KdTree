@@ -8,7 +8,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class KdTree {
   private static final boolean VERTICAL = true;
-  // private static final boolean HORIZONTAL = false;
+  private static final boolean HORIZONTAL = false;
   // private static final RectHV RANGE = new RectHV(0, 0, 1, 1);
 
   private Node root;
@@ -54,7 +54,7 @@ public class KdTree {
   public void insert(final Point2D p) {
     if (p == null)
       throw new IllegalArgumentException("calls insert() with a null key");
-    root = insert(root, p, VERTICAL);
+    root = insert(root, p, HORIZONTAL);
   }
 
   private Node insert(final Node nd, final Point2D p, final boolean isVertical) {
