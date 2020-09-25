@@ -1,11 +1,11 @@
-// import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.ResizingArrayBag;
 import edu.princeton.cs.algs4.ResizingArrayQueue;
 import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.StdDraw;
-// import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.StdOut;
 
 public class KdTree {
   private static final boolean VERTICAL = true;
@@ -198,25 +198,25 @@ public class KdTree {
     if (nd == null)
       return;
     final double distThis = rect.distanceTo(nd.point);
-    final Double distLft = nd.lb == null ? null : rect.distanceTo(nd.lb.point);
-    final Double distRt = nd.rt == null ? null : rect.distanceTo(nd.rt.point);
+    final double distLft = nd.lb == null ? Double.POSITIVE_INFINITY : rect.distanceTo(nd.lb.point);
+    final double distRt = nd.rt == null ? Double.POSITIVE_INFINITY : rect.distanceTo(nd.rt.point);
 
     if (rect.contains(nd.point)) {
       // add the point
       pointsInRange.add(nd.point);
       // check left
-      if (distLft != null)
+      if (nd.lb != null)
         range(rect, nd.lb, pointsInRange);
       // check right
-      if (distRt != null)
+      if (nd.rt != null)
         range(rect, nd.rt, pointsInRange);
     }
 
     // MAYBE NEED TO USE LESS OR EQUALS??
     else {
-      if (distLft != null && distLft <= distThis)
+      if (distLft <= distThis)
         range(rect, nd.lb, pointsInRange);
-      if (distRt != null && distRt <= distThis)
+      if (distRt <= distThis)
         range(rect, nd.rt, pointsInRange);
     }
   }
@@ -297,61 +297,67 @@ public class KdTree {
   // **************************** MAIN ****************************
   // unit testing of the methods (optional)
   public static void main(final String[] args) {
-    // String filename = args[0];
-    // In in = new In(filename);
-    // KdTree kdTree = new KdTree();
+    String filename = args[0];
+    In in = new In(filename);
+    KdTree kdTree = new KdTree();
 
-    // // test empty set
-    // StdOut.println("size of set:\t" + kdTree.size());
-    // StdOut.println("empty set?:\t" + kdTree.isEmpty());
-    // StdOut.println();
+    // test empty set
+    StdOut.println("size of set:\t" + kdTree.size());
+    StdOut.println("empty set?:\t" + kdTree.isEmpty());
+    StdOut.println();
 
-    // // fill the set
-    // while (!in.isEmpty()) {
-    //   double x = in.readDouble();
-    //   double y = in.readDouble();
-    //   Point2D p = new Point2D(x, y);
-    //   kdTree.insert(p);
-    // }
+    // fill the set
+    while (!in.isEmpty()) {
+      double x = in.readDouble();
+      double y = in.readDouble();
+      Point2D p = new Point2D(x, y);
+      kdTree.insert(p);
+    }
 
-    // StdOut.println();
+    StdOut.println();
 
-    // // test filled set
+    // test filled set
     // StdOut.println("Points added\n---------------------");
+    // RectHV RANGE = new RectHV(0, 0, 1, 1);
     // int i = 0;
     // for (Node nd : kdTree.levelOrder()) {
     //   Node leftChild = nd.lb;
     //   Node rtChild = nd.rt;
     //   StdOut.println(++i + ". " + nd.point.toString() + "\t" + (nd.splitOrientation == VERTICAL ? "--" : "|"));
     //   StdOut.println("Children: " + (leftChild == null ? "none" : leftChild.point.toString()) + "\t"
-    //       + (rtChild == null ? "none" : rtChild.point.toString()));
+    //   + (rtChild == null ? "none" : rtChild.point.toString()));
     //   StdOut.println("Size: " + nd.size);
     //   StdOut.println();
     // }
 
-    // StdOut.println();
+    StdOut.println("Points added\n---------------------");
+    RectHV RANGE = new RectHV(0, 0, 1, 1);
+    int i = 0;
+    for (Point2D p : kdTree.range(RANGE)) StdOut.println(++i + ". " + p.toString());
 
-    // // test draw()
-    // kdTree.draw();
+    StdOut.println();
 
-    // // test nearest()
-    // StdOut.println();
-    // Point2D test = new Point2D(0.1, 0.3);
-    // StdDraw.setPenRadius(0.01);
-    // StdDraw.setPenColor(StdDraw.ORANGE);
-    // test.draw();
-    // StdOut.println("nearest:\t" + kdTree.nearest(test));
+    // test draw()
+    kdTree.draw();
 
-    // // test range()
-    // RectHV rect = new RectHV(0.25, 0.25, 0.3, 0.6);
+    // test nearest()
+    StdOut.println();
+    Point2D test = new Point2D(0.1, 0.3);
+    StdDraw.setPenRadius(0.01);
+    StdDraw.setPenColor(StdDraw.ORANGE);
+    test.draw();
+    StdOut.println("nearest:\t" + kdTree.nearest(test));
+
+    // test range()
+    RectHV rect = new RectHV(0.25, 0.25, 0.6, 0.8);
     
 
-    // StdDraw.setPenRadius(0.005);
-    // StdDraw.setPenColor(StdDraw.ORANGE);
-    // rect.draw();
+    StdDraw.setPenRadius(0.005);
+    StdDraw.setPenColor(StdDraw.ORANGE);
+    rect.draw();
 
-    // StdOut.println("Range in rect:");
-    // for (Point2D point : kdTree.range(rect))
-    //   StdOut.println(point.toString());
+    StdOut.println("Range in rect:");
+    for (Point2D point : kdTree.range(rect))
+      StdOut.println(point.toString());
   }
 }
