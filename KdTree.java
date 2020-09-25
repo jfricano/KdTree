@@ -109,7 +109,7 @@ public class KdTree {
     final SET<Double> xLimits = new SET<Double>();
     final SET<Double> yLimits = new SET<Double>();
 
-    StdDraw.setCanvasSize(800, 800);
+    // StdDraw.setCanvasSize(800, 800);
     StdDraw.setScale(0, 1);
     draw(root, xLimits, yLimits);
   }
@@ -197,9 +197,9 @@ public class KdTree {
   private void range(final RectHV rect, final Node nd, final ResizingArrayBag<Point2D> pointsInRange) {
     if (nd == null)
       return;
-    final double distThis = rect.distanceTo(nd.point);
-    final double distLft = nd.lb == null ? Double.POSITIVE_INFINITY : rect.distanceTo(nd.lb.point);
-    final double distRt = nd.rt == null ? Double.POSITIVE_INFINITY : rect.distanceTo(nd.rt.point);
+    final double distThis = rect.distanceSquaredTo(nd.point);
+    final double distLft = nd.lb == null ? Double.POSITIVE_INFINITY : rect.distanceSquaredTo(nd.lb.point);
+    final double distRt = nd.rt == null ? Double.POSITIVE_INFINITY : rect.distanceSquaredTo(nd.rt.point);
 
     if (rect.contains(nd.point)) {
       // add the point
@@ -224,7 +224,7 @@ public class KdTree {
   // **************************** NEAREST ****************************
   // a nearest neighbor in the set to point p; null if the set is empty
   public Point2D nearest(final Point2D p) {
-    return nearest(p, root, root.point, p.distanceTo(root.point), null);
+    return nearest(p, root, root.point, p.distanceSquaredTo(root.point), null);
   }
 
   private Point2D nearest(final Point2D queryPoint, final Node nd, final Point2D currentNearest,
@@ -237,7 +237,7 @@ public class KdTree {
     // Point2D closestOnLine;
     Point2D nearest = currentNearest;
     double min = currentMin;
-    final double queryDist = queryPoint.distanceTo(nd.point);
+    final double queryDist = queryPoint.distanceSquaredTo(nd.point);
 
     if (queryDist < currentMin) {
       nearest = nd.point;
@@ -246,11 +246,11 @@ public class KdTree {
 
     if (comparePoints(queryPoint, nd) < 0) {
       nearest = nearest(queryPoint, nd.lb, nearest, min, nd);
-      min = queryPoint.distanceTo(nearest);
+      min = queryPoint.distanceSquaredTo(nearest);
       nearest = nearest(queryPoint, nd.rt, nearest, min, nd, parent);
     } else {
       nearest = nearest(queryPoint, nd.rt, nearest, min, nd);
-      min = queryPoint.distanceTo(nearest);
+      min = queryPoint.distanceSquaredTo(nearest);
       nearest = nearest(queryPoint, nd.lb, nearest, min, nd, parent);
     }
 
@@ -265,11 +265,11 @@ public class KdTree {
 
     if (nd.splitOrientation == VERTICAL) {
       closestOnLine = new Point2D(limitingCoord, nd.point.y());
-      if (queryPoint.distanceTo(closestOnLine) < currentMin)
+      if (queryPoint.distanceSquaredTo(closestOnLine) < currentMin)
         nearest = nearest(queryPoint, child, nearest, currentMin, nd);
     } else {
       closestOnLine = new Point2D(nd.point.x(), limitingCoord);
-      if (queryPoint.distanceTo(closestOnLine) < currentMin)
+      if (queryPoint.distanceSquaredTo(closestOnLine) < currentMin)
         nearest = nearest(queryPoint, child, nearest, currentMin, nd);
     }
 
