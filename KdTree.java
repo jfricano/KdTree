@@ -2,14 +2,13 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.ResizingArrayBag;
-// import edu.princeton.cs.algs4.ResizingArrayStack;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
 public class KdTree {
   private static final boolean VERTICAL = true;
   private static final boolean HORIZONTAL = false;
-  // private static final RectHV RANGE = new RectHV(0, 0, 1, 1);
+  private static final RectHV RANGE = new RectHV(0, 0, 1, 1);
 
   private Node root;
 
@@ -93,11 +92,8 @@ public class KdTree {
 
   // **************************** DRAW ****************************
   public void draw() {
-    // final ResizingArrayStack<Double> xLimits = new ResizingArrayStack<Double>();
-    // final ResizingArrayStack<Double> yLimits = new ResizingArrayStack<Double>();
-
     StdDraw.setScale(0, 1);
-    draw(root, new RectHV(0, 0, 1, 1));
+    draw(root, RANGE);
   }
 
   private void draw(final Node nd, final RectHV outer) {
@@ -127,6 +123,7 @@ public class KdTree {
     draw(nd.lb, lbRect);
     draw(nd.rt, rtRect);
   }
+
   // **************************** RANGE ****************************
   // all points that are inside the rectangle (or on the boundary)
   public Iterable<Point2D> range(final RectHV rect) {
@@ -138,15 +135,13 @@ public class KdTree {
       throw new IllegalArgumentException("calls range() with null argument");
       
     final ResizingArrayBag<Point2D> pointsInRange = new ResizingArrayBag<>();
-    range(rect, root, pointsInRange, 0, 0, 1, 1);
+    range(rect, root, pointsInRange, RANGE);
     return pointsInRange;
   }
 
-  private void range(final RectHV rect, 
-                     final Node nd, 
+  private void range(final RectHV rect, final Node nd, 
                      final ResizingArrayBag<Point2D> pointsInRange,
-                     final double xMin, final double yMin, 
-                     final double xMax, final double yMax) {
+                     final RectHV outer) {
 
     if (nd == null) return;
     
@@ -157,37 +152,33 @@ public class KdTree {
     // create a lb rectangle
     // create a rt rectanble
     if (nd.splitOrientation == VERTICAL) {
-      lbRect = new RectHV(xMin, yMin, xMax, nd.point.y());
-      rtRect = new RectHV(xMin, nd.point.y(), xMax, yMax);
+      lbRect = new RectHV(outer.xmin(), outer.ymin(), outer.xmax(), nd.point.y());
+      rtRect = new RectHV(outer.xmin(), nd.point.y(), outer.xmax(), outer.ymax());
     } else {
-      lbRect = new RectHV(xMin, yMin, nd.point.x(), yMax);
-      rtRect = new RectHV(nd.point.x(), yMin, xMax, yMax);
+      lbRect = new RectHV(outer.xmin(), outer.ymin(), nd.point.x(), outer.ymax());
+      rtRect = new RectHV(nd.point.x(), outer.ymin(), outer.xmax(), outer.ymax());
     }
 
     // if the rect intersects lb, then search lb
     // if the rect intersects rt, then search rt
     if (rect.intersects(lbRect))
-      range(rect, nd.lb, pointsInRange, 
-            lbRect.xmin(), lbRect.ymin(), 
-            lbRect.xmax(), lbRect.ymax());
+      range(rect, nd.lb, pointsInRange, lbRect);
     if (rect.intersects(rtRect))
-      range(rect, nd.rt, pointsInRange, 
-            rtRect.xmin(), rtRect.ymin(), 
-            rtRect.xmax(), rtRect.ymax());
+      range(rect, nd.rt, pointsInRange, rtRect);
   }
 
   // **************************** NEAREST ****************************
   // a nearest neighbor in the set to point p; null if the set is empty
   public Point2D nearest(final Point2D p) {
-    if (p == null)   throw new IllegalArgumentException("calls nearest() with null argument");
+    if (p == null)   
+      throw new IllegalArgumentException("calls nearest() with null argument");
     if (size() == 0) return null;
-    return nearest(p, root, root.point, 0, 0, 1, 1);
+    return nearest(p, root, root.point, RANGE);
   }
 
   private Point2D nearest(final Point2D queryPoint, final Node nd, 
                           final Point2D currentNearest, 
-                          final double xMin, final double yMin, 
-                          final double xMax, final double yMax) {
+                          final RectHV outer) {
     if (nd == null)                  return currentNearest;
     if (queryPoint.equals(nd.point)) return nd.point;
 
@@ -202,38 +193,30 @@ public class KdTree {
     }
 
     if (nd.splitOrientation == VERTICAL) {
-      lbRect = new RectHV(xMin, yMin, xMax, nd.point.y());
-      rtRect = new RectHV(xMin, nd.point.y(), xMax, yMax);
+      lbRect = new RectHV(outer.xmin(), outer.ymin(), outer.xmax(), nd.point.y());
+      rtRect = new RectHV(outer.xmin(), nd.point.y(), outer.xmax(), outer.ymax());
     } else {
-      lbRect = new RectHV(xMin, yMin, nd.point.x(), yMax);
-      rtRect = new RectHV(nd.point.x(), yMin, xMax, yMax);
+      lbRect = new RectHV(outer.xmin(), outer.ymin(), nd.point.x(), outer.ymax());
+      rtRect = new RectHV(nd.point.x(), outer.ymin(), outer.xmax(), outer.ymax());
     }
 
     // if queryPoint is left of node, go left
     // then go right iff the right rect is closer than current min
     if (comparePoints(queryPoint, nd) < 0) {
-      nearest = nearest(queryPoint, nd.lb, nearest, 
-                        lbRect.xmin(), lbRect.ymin(), 
-                        lbRect.xmax(), lbRect.ymax());
+      nearest = nearest(queryPoint, nd.lb, nearest, lbRect);
       minDist = queryPoint.distanceSquaredTo(nearest);
 
       if (rtRect.distanceSquaredTo(queryPoint) < minDist) {
-        nearest = nearest(queryPoint, nd.rt, nearest, 
-                          rtRect.xmin(), rtRect.ymin(), 
-                          rtRect.xmax(), rtRect.ymax());
+        nearest = nearest(queryPoint, nd.rt, nearest, rtRect);
       }
       // else if queryPoint is right of node, go right
       // then go left iff the left rect is closer than the current min
     } else {
-      nearest = nearest(queryPoint, nd.rt, nearest, 
-                        rtRect.xmin(), rtRect.ymin(), 
-                        rtRect.xmax(), rtRect.ymax());
+      nearest = nearest(queryPoint, nd.rt, nearest, rtRect);
       minDist = queryPoint.distanceSquaredTo(nearest);
 
       if (lbRect.distanceSquaredTo(queryPoint) < minDist) {
-        nearest = nearest(queryPoint, nd.lb, nearest, 
-                          lbRect.xmin(), lbRect.ymin(), 
-                          lbRect.xmax(), lbRect.ymax());
+        nearest = nearest(queryPoint, nd.lb, nearest, lbRect);
       }
     }
     return nearest;
@@ -278,7 +261,6 @@ public class KdTree {
     // }
 
     StdOut.println("Points added\n---------------------");
-    final RectHV RANGE = new RectHV(0, 0, 1, 1);
     int i = 0;
     for (final Point2D p : kdTree.range(RANGE))
       StdOut.println(++i + ". " + p.toString());
