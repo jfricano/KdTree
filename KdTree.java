@@ -77,13 +77,12 @@ public class KdTree {
   // **************************** CONTAINS ****************************
   // does the set contain point p?
   public boolean contains(final Point2D p) {
+    if (p == null) 
+      throw new IllegalArgumentException("calls contains() with null argument");
     return contains(root, p);
   }
 
   private boolean contains(final Node nd, final Point2D p) {
-    if (p == null)
-      throw new IllegalArgumentException("argument to contains() is null");
-
     if (nd == null)         return false;
     if (p.equals(nd.point)) return true;
 
@@ -139,7 +138,8 @@ public class KdTree {
       yLimits.pop();
   }
 
-  private double[] getLimits(final ResizingArrayStack<Double> limits, final double coord) {
+  private double[] getLimits(final ResizingArrayStack<Double> limits, 
+                             final double coord) {
     final double[] minMax = new double[2];
     minMax[0] = 0;
     minMax[1] = 1;
@@ -173,6 +173,9 @@ public class KdTree {
     // if root is left of rectangle, only have to look to left
     // when intersects spliting line, have to check both subtrees
     // check first half, if no, then search next subtree
+    if (rect == null) 
+      throw new IllegalArgumentException("calls range() with null argument");
+      
     final ResizingArrayBag<Point2D> pointsInRange = new ResizingArrayBag<>();
     range(rect, root, pointsInRange, 0, 0, 1, 1);
     return pointsInRange;
@@ -181,13 +184,14 @@ public class KdTree {
   private void range(final RectHV rect, 
                      final Node nd, 
                      final ResizingArrayBag<Point2D> pointsInRange,
-                     final double xMin, final double yMin, final double xMax, final double yMax) {
-    if (nd == null)
-      return;
-    if (rect.contains(nd.point))
-      pointsInRange.add(nd.point);
+                     final double xMin, final double yMin, 
+                     final double xMax, final double yMax) {
 
+    if (nd == null) return;
+    
     RectHV lbRect, rtRect;
+    
+    if (rect.contains(nd.point)) pointsInRange.add(nd.point);
 
     // create a lb rectangle
     // create a rt rectanble
@@ -202,23 +206,29 @@ public class KdTree {
     // if the rect intersects lb, then search lb
     // if the rect intersects rt, then search rt
     if (rect.intersects(lbRect))
-      range(rect, nd.lb, pointsInRange, lbRect.xmin(), lbRect.ymin(), lbRect.xmax(), lbRect.ymax());
+      range(rect, nd.lb, pointsInRange, 
+            lbRect.xmin(), lbRect.ymin(), 
+            lbRect.xmax(), lbRect.ymax());
     if (rect.intersects(rtRect))
-      range(rect, nd.rt, pointsInRange, rtRect.xmin(), rtRect.ymin(), rtRect.xmax(), rtRect.ymax());
+      range(rect, nd.rt, pointsInRange, 
+            rtRect.xmin(), rtRect.ymin(), 
+            rtRect.xmax(), rtRect.ymax());
   }
 
   // **************************** NEAREST ****************************
   // a nearest neighbor in the set to point p; null if the set is empty
   public Point2D nearest(final Point2D p) {
+    if (p == null)   throw new IllegalArgumentException("calls nearest() with null argument");
+    if (size() == 0) return null;
     return nearest(p, root, root.point, 0, 0, 1, 1);
   }
 
-  private Point2D nearest(final Point2D queryPoint, final Node nd, final Point2D currentNearest, final double xMin,
-      final double yMin, final double xMax, final double yMax) {
-    if (nd == null)
-      return currentNearest;
-    if (queryPoint.equals(nd.point))
-      return nd.point;
+  private Point2D nearest(final Point2D queryPoint, final Node nd, 
+                          final Point2D currentNearest, 
+                          final double xMin, final double yMin, 
+                          final double xMax, final double yMax) {
+    if (nd == null)                  return currentNearest;
+    if (queryPoint.equals(nd.point)) return nd.point;
 
     RectHV lbRect, rtRect;
     Point2D nearest = currentNearest;
@@ -241,20 +251,28 @@ public class KdTree {
     // if queryPoint is left of node, go left
     // then go right iff the right rect is closer than current min
     if (comparePoints(queryPoint, nd) < 0) {
-      nearest = nearest(queryPoint, nd.lb, nearest, lbRect.xmin(), lbRect.ymin(), lbRect.xmax(), lbRect.ymax());
+      nearest = nearest(queryPoint, nd.lb, nearest, 
+                        lbRect.xmin(), lbRect.ymin(), 
+                        lbRect.xmax(), lbRect.ymax());
       minDist = queryPoint.distanceSquaredTo(nearest);
 
       if (rtRect.distanceSquaredTo(queryPoint) < minDist) {
-        nearest = nearest(queryPoint, nd.rt, nearest, rtRect.xmin(), rtRect.ymin(), rtRect.xmax(), rtRect.ymax());
+        nearest = nearest(queryPoint, nd.rt, nearest, 
+                          rtRect.xmin(), rtRect.ymin(), 
+                          rtRect.xmax(), rtRect.ymax());
       }
       // else if queryPoint is right of node, go right
       // then go left iff the left rect is closer than the current min
     } else {
-      nearest = nearest(queryPoint, nd.rt, nearest, rtRect.xmin(), rtRect.ymin(), rtRect.xmax(), rtRect.ymax());
+      nearest = nearest(queryPoint, nd.rt, nearest, 
+                        rtRect.xmin(), rtRect.ymin(), 
+                        rtRect.xmax(), rtRect.ymax());
       minDist = queryPoint.distanceSquaredTo(nearest);
 
       if (lbRect.distanceSquaredTo(queryPoint) < minDist) {
-        nearest = nearest(queryPoint, nd.lb, nearest, lbRect.xmin(), lbRect.ymin(), lbRect.xmax(), lbRect.ymax());
+        nearest = nearest(queryPoint, nd.lb, nearest, 
+                          lbRect.xmin(), lbRect.ymin(), 
+                          lbRect.xmax(), lbRect.ymax());
       }
     }
     return nearest;
