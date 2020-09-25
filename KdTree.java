@@ -167,20 +167,20 @@ public class KdTree {
 
   // **************************** GETTER (for testing)
   // ****************************
-  private Iterable<Node> levelOrder() {
-    final ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
-    final ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
-    q.enqueue(root);
-    while (!q.isEmpty()) {
-      final Node nd = q.dequeue();
-      if (nd == null)
-        continue;
-      points.enqueue(nd);
-      q.enqueue(nd.lb);
-      q.enqueue(nd.rt);
-    }
-    return points;
-  }
+  // private Iterable<Node> levelOrder() {
+  //   final ResizingArrayQueue<Node> points = new ResizingArrayQueue<Node>();
+  //   final ResizingArrayQueue<Node> q = new ResizingArrayQueue<Node>();
+  //   q.enqueue(root);
+  //   while (!q.isEmpty()) {
+  //     final Node nd = q.dequeue();
+  //     if (nd == null)
+  //       continue;
+  //     points.enqueue(nd);
+  //     q.enqueue(nd.lb);
+  //     q.enqueue(nd.rt);
+  //   }
+  //   return points;
+  // }
 
   // **************************** RANGE ****************************
   // all points that are inside the rectangle (or on the boundary)
