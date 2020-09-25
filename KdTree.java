@@ -3,7 +3,7 @@ import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.ResizingArrayBag;
 import edu.princeton.cs.algs4.ResizingArrayQueue;
-import edu.princeton.cs.algs4.SET;
+import edu.princeton.cs.algs4.ResizingArrayStack;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
@@ -106,15 +106,15 @@ public class KdTree {
 
   // **************************** DRAW ****************************
   public void draw() {
-    final SET<Double> xLimits = new SET<Double>();
-    final SET<Double> yLimits = new SET<Double>();
+    final ResizingArrayStack<Double> xLimits = new ResizingArrayStack<Double>();
+    final ResizingArrayStack<Double> yLimits = new ResizingArrayStack<Double>();
 
     // StdDraw.setCanvasSize(800, 800);
     StdDraw.setScale(0, 1);
     draw(root, xLimits, yLimits);
   }
 
-  private void draw(final Node nd, final SET<Double> xLimits, final SET<Double> yLimits) {
+  private void draw(final Node nd, final ResizingArrayStack<Double> xLimits, final ResizingArrayStack<Double> yLimits) {
     if (nd == null)
       return;
     final double x = nd.point.x();
@@ -130,12 +130,12 @@ public class KdTree {
       stopLimits = getLimits(xLimits, x);
       StdDraw.setPenColor(StdDraw.BLUE);
       StdDraw.line(stopLimits[0], y, stopLimits[1], y);
-      yLimits.add(y);
+      yLimits.push(y);
     } else {
       stopLimits = getLimits(yLimits, y);
       StdDraw.setPenColor(StdDraw.RED);
       StdDraw.line(x, stopLimits[0], x, stopLimits[1]);
-      xLimits.add(x);
+      xLimits.push(x);
     }
 
     draw(nd.lb, xLimits, yLimits);
@@ -145,14 +145,14 @@ public class KdTree {
     rmLimits(nd, nd.rt, xLimits, yLimits);
   }
 
-  private void rmLimits(final Node nd, final Node child, final SET<Double> xLimits, final SET<Double> yLimits) {
+  private void rmLimits(final Node nd, final Node child, final ResizingArrayStack<Double> xLimits, final ResizingArrayStack<Double> yLimits) {
     if (nd.splitOrientation == VERTICAL && child != null)
-      xLimits.remove(child.point.x());
+      xLimits.pop();
     else if (child != null)
-      yLimits.remove(child.point.y());
+      yLimits.pop();
   }
 
-  private double[] getLimits(final SET<Double> limits, final double coord) {
+  private double[] getLimits(final ResizingArrayStack<Double> limits, final double coord) {
     final double[] minMax = new double[2];
     minMax[0] = 0;
     minMax[1] = 1;
